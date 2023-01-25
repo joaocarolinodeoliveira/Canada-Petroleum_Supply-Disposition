@@ -1,0 +1,37 @@
+import pandas as pd
+from statsmodels.tsa.arima_model import ARIMA
+from sklearn.metrics import mean_squared_error
+
+# Read the data into a pandas dataframe
+data = pd.read_csv("your_data.csv")
+
+# Convert the "DATE" column into a datetime object
+data["DATE"] = pd.to_datetime(data["DATE"])
+
+# Set the "DATE" column as the index
+data = data.set_index("DATE")
+
+# Select the columns you want to use for forecasting
+data = data[["GASOLINE", "DIESEL", "Production-OIL", "Imports", "Exports", "Equivalent Products Production"]]
+
+# Check for missing values
+print(data.isnull().sum())
+
+# Check for outliers
+# You can use visualization techniques such as boxplots to check for outliers
+
+# Convert the dataframe into a time series dataset
+data = data.astype('float32')
+
+# Split the data into train and test sets
+train_data = data[:int(0.8*(len(data)))]
+test_data = data[int(0.8*(len(data))):]
+
+# Run the ARIMA model
+arima_model = ARIMA(train_data, order=(1,1,1))
+arima_fit = arima_model.fit()
+arima_pred = arima_fit.forecast(steps=len(test_data))[0]
+
+# Calculate the root mean square error
+rmse = mean_squared_error(test_data, arima_pred, squared=False)
+print("Root Mean Square Error: ", rmse)
